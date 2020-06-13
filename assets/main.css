@@ -1,0 +1,60 @@
+body {
+  background: rgb(46,52,64);
+  background: -moz-linear-gradient(130deg, rgba(46,52,64,1) 0%, rgba(76,86,106,1) 100%);
+  background: -webkit-linear-gradient(130deg, rgba(46,52,64,1) 0%, rgba(76,86,106,1) 100%);
+  background: linear-gradient(130deg, rgba(46,52,64,1) 0%, rgba(76,86,106,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#2e3440",endColorstr="#4c566a",GradientType=1);
+}
+.red {
+  color: #BF616A;
+}
+.orange {
+  color: #D08770;
+}
+.yellow {
+  color: #EBCB8B;
+}
+.green {
+  color: #A3BE8C;
+}
+h1, h3, h4, p, span {
+  color:#D8DEE9;
+  font-family: 'Roboto Mono', monospace;
+}
+h2{
+  color: #5E81AC;
+  font-family: 'Roboto Mono', monospace;
+}
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-flow: column;
+  height: 100vh;
+}
+.title {
+  text-align: center;
+}
+.sub-title {
+  text-align: center;
+}
+.tecnologies {
+  display: flex;
+}
+.tecnologies span{
+  font-size: 0.8rem;
+  padding: 3px;
+}
+.links{
+  height: 86px;
+}
+i {
+  font-size: 3rem;
+  padding: 1rem;
+  color: #D8DEE9;
+  transition: all ease-in-out 0.4s;
+}
+i:hover, i:focus, i:active {
+  font-size: 3.4rem;
+  color: #5E81AC;
+}
