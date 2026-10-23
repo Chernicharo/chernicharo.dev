@@ -1,0 +1,68 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Nunca roda dois deploys ao mesmo tempo
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # Pula o deploy (sem erro) enquanto os secrets do servidor não forem configurados
+  preflight:
+    name: Secrets configurados?
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - id: check
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -n "$DEPLOY_HOST" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Secrets de deploy ainda não configurados. Deploy pulado."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    name: Publicar
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://chernicharo.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # No servidor esta chave só consegue escrever em /srv/www/chernicharo.com (rrsync)
+      - name: Enviar arquivos
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          rsync -rlptz --delete --delay-updates --chmod=D755,F644 \
+            --exclude='.git*' --exclude='.github/' --exclude='LICENSE' --exclude='README*' \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            ./ "deploy@${DEPLOY_HOST}:"
+
+      - name: Conferir site no ar
+        run: curl -fsS -o /dev/null -w "HTTP %{http_code}\n" https://chernicharo.com/
